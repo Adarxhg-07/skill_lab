@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduSphere - Student Academic and Portfolio Operating System. Dashboard overview with student stats, task progress, and recent activity.">
+  <title>Dashboard - EduSphere</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar (injected by JS) -->
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <header class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-title">Dashboard</h1>
+        </div>
+        <div class="page-header__right">
+          <div class="search-box">
+            <span class="search-box__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input type="text" class="search-box__input" placeholder="Search students or tasks..." id="dashboardSearch">
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <!-- Filled by JS -->
+        </div>
+
+        <!-- Dashboard Main Grid -->
+        <div class="dashboard-grid">
+          <!-- Recent Students -->
+          <div class="card">
+            <div class="card__header">
+              <span class="card__title">Recent Students</span>
+              <a href="students.html" class="btn btn--outline btn--sm">View all</a>
+            </div>
+            <div class="card__body" id="recentStudents" style="padding: 0;">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Task Overview -->
+          <div class="card">
+            <div class="card__header">
+              <span class="card__title">Task Overview</span>
+              <a href="tasks.html" class="btn btn--outline btn--sm">View all</a>
+            </div>
+            <div class="card__body" id="taskOverview">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Inject sidebar
+      document.getElementById('sidebar-root').innerHTML = getSidebarHTML();
+      initSidebarActiveState();
+
+      // Load data
+      const students = await fetchStudents();
+      const tasks = await fetchTasks();
+
+      renderStats(students, tasks);
+      renderRecentStudents(students.slice(0, 6));
+      renderTaskOverview(tasks);
+    });
+
+    function renderStats(students, tasks) {
+      const totalStudents = students.length;
+      const activeTasks = tasks.filter(t => t.status !== 'done').length;
+      const completedTasks = tasks.filter(t => t.status === 'done').length;
+      const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+      const deptCount = new Set(students.map(s => s.department)).size;
+
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-card__label">Total Students</div>
+          <div class="stat-card__value">${totalStudents}</div>
+          <div class="stat-card__meta stat-card__meta--up"><span>+${Math.min(totalStudents, 3)} this month</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Active Tasks</div>
+          <div class="stat-card__value">${activeTasks}</div>
+          <div class="stat-card__meta">${tasks.length} total tasks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Completion Rate</div>
+          <div class="stat-card__value">${completionRate}%</div>
+          <div class="stat-card__meta stat-card__meta--up"><span>${completedTasks} completed</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Departments</div>
+          <div class="stat-card__value">${deptCount}</div>
+          <div class="stat-card__meta">Active programs</div>
+        </div>
+      `;
+    }
+
+    function renderRecentStudents(students) {
+      const container = document.getElementById('recentStudents');
+      if (students.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state__icon">${ICONS.empty}</div>
+            <div class="empty-state__title">No students yet</div>
+            <div class="empty-state__text">Add your first student to get started</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = `
+        <div class="recent-list">
+          ${students.map(s => `
+            <a href="portfolio.html?id=${s._id}" class="recent-item">
+              ${renderAvatar(s.name)}
+              <div class="recent-item__info">
+                <div class="recent-item__name">${s.name}</div>
+                <div class="recent-item__detail">${s.rollNumber} &middot; ${s.department}</div>
+              </div>
+              <div class="recent-item__badge">
+                <span class="badge badge--muted">Year ${s.year}</span>
+              </div>
+            </a>
+          `).join('')}
+        </div>`;
+    }
+
+    function renderTaskOverview(tasks) {
+      const container = document.getElementById('taskOverview');
+      const statusGroups = {
+        'todo': { label: 'To Do', count: 0 },
+        'in-progress': { label: 'In Progress', count: 0 },
+        'done': { label: 'Done', count: 0 }
+      };
+
+      tasks.forEach(t => {
+        if (statusGroups[t.status]) statusGroups[t.status].count++;
+      });
+
+      const total = tasks.length || 1;
+
+      container.innerHTML = Object.entries(statusGroups).map(([key, data]) => {
+        const pct = Math.round((data.count / total) * 100);
+        const fillClass = key === 'done' ? 'progress__fill--success' :
+                          key === 'in-progress' ? '' : 'progress__fill--warning';
+        return `
+          <div class="task-stat-row">
+            <span class="task-stat-label">${data.label}</span>
+            <div class="progress" style="flex:1">
+              <div class="progress__bar">
+                <div class="progress__fill ${fillClass}" style="width:${pct}%"></div>
+              </div>
+              <span class="progress__label">${data.count} tasks</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

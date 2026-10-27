@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduSphere - Interactive Task Manager. Organize academic tasks with drag-and-drop, priority sorting, and JSON export/import.">
+  <title>Tasks - EduSphere</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <header class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-title">Tasks</h1>
+        </div>
+        <div class="page-header__right">
+          <div class="task-actions-bar">
+            <button class="btn btn--outline" id="exportBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Export JSON
+            </button>
+            <label class="btn btn--outline" for="importFile" style="cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              Import JSON
+            </label>
+            <input type="file" id="importFile" accept=".json" style="display:none">
+          </div>
+          <button class="btn btn--dark btn--lg" id="addTaskBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Add Task
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="tasks-columns" id="tasksColumns">
+          <!-- To Do Column -->
+          <div class="task-column">
+            <div class="task-column__header">
+              <span class="task-column__title">To Do <span class="task-column__count" id="todoCount">0</span></span>
+            </div>
+            <div class="task-column__body" id="todoColumn" data-status="todo"></div>
+          </div>
+
+          <!-- In Progress Column -->
+          <div class="task-column">
+            <div class="task-column__header">
+              <span class="task-column__title">In Progress <span class="task-column__count" id="inProgressCount">0</span></span>
+            </div>
+            <div class="task-column__body" id="inProgressColumn" data-status="in-progress"></div>
+          </div>
+
+          <!-- Done Column -->
+          <div class="task-column">
+            <div class="task-column__header">
+              <span class="task-column__title">Done <span class="task-column__count" id="doneCount">0</span></span>
+            </div>
+            <div class="task-column__body" id="doneColumn" data-status="done"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Task Dialog -->
+  <dialog class="modal" id="taskModal">
+    <div class="modal__header">
+      <h2 class="modal__title" id="taskModalTitle">Add Task</h2>
+      <button class="modal__close" id="taskModalClose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <form id="taskForm">
+      <div class="modal__body">
+        <div class="form-group">
+          <label class="form-label" for="taskTitleInput">Title</label>
+          <input type="text" class="form-input" id="taskTitleInput" placeholder="Complete DBMS Assignment" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="taskDescInput">Description</label>
+          <textarea class="form-input" id="taskDescInput" placeholder="Detailed task description..." rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="taskDueInput">Due Date</label>
+            <input type="date" class="form-input" id="taskDueInput" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="taskPriorityInput">Priority</label>
+            <select class="form-input" id="taskPriorityInput" required>
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="taskStatusInput">Status</label>
+            <select class="form-input" id="taskStatusInput" required>
+              <option value="todo">To Do</option>
+              <option value="in-progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="taskStudentInput">Assign To</label>
+            <select class="form-input" id="taskStudentInput">
+              <option value="">Unassigned</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--outline" id="taskModalCancel">Cancel</button>
+        <button type="submit" class="btn btn--dark" id="taskModalSubmit">Add Task</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/tasks.js"></script>
+</body>
+</html>

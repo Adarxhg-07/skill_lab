@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduSphere - Manage student records. Add, search, filter, edit, and delete students with a clean interface.">
+  <title>Students - EduSphere</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <header class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-title">Students</h1>
+          <span class="text-sm text-muted" id="studentCount"></span>
+        </div>
+        <div class="page-header__right">
+          <div class="search-box">
+            <span class="search-box__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input type="text" class="search-box__input" placeholder="Search by name or roll..." id="studentSearch" style="width:220px">
+          </div>
+          <div class="filters">
+            <select class="filter-select" id="deptFilter">
+              <option value="">All Departments</option>
+            </select>
+            <select class="filter-select" id="yearFilter">
+              <option value="">All Years</option>
+            </select>
+          </div>
+          <button class="btn btn--dark btn--lg" id="addStudentBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Add Student
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="students-grid" id="studentsGrid">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Student Dialog -->
+  <dialog class="modal" id="studentModal">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modalTitle">Add Student</h2>
+      <button class="modal__close" id="modalClose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <form id="studentForm">
+      <div class="modal__body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="nameInput">Full Name</label>
+            <input type="text" class="form-input" id="nameInput" placeholder="Aarav Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="emailInput">Email</label>
+            <input type="email" class="form-input" id="emailInput" placeholder="aarav@edusphere.edu" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="rollInput">Roll Number</label>
+            <input type="text" class="form-input" id="rollInput" placeholder="CS2024001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="deptInput">Department</label>
+            <select class="form-input" id="deptInput" required>
+              <option value="">Select department</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="yearInput">Year</label>
+            <select class="form-input" id="yearInput" required>
+              <option value="">Select year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="skillsInput">Skills</label>
+            <input type="text" class="form-input" id="skillsInput" placeholder="JavaScript, React, Node.js">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bioInput">Bio</label>
+          <textarea class="form-input" id="bioInput" placeholder="Brief description about the student..." rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="githubInput">GitHub URL</label>
+            <input type="url" class="form-input" id="githubInput" placeholder="https://github.com/username">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="linkedinInput">LinkedIn URL</label>
+            <input type="url" class="form-input" id="linkedinInput" placeholder="https://linkedin.com/in/username">
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--outline" id="modalCancel">Cancel</button>
+        <button type="submit" class="btn btn--dark" id="modalSubmit">Add Student</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/students.js"></script>
+</body>
+</html>

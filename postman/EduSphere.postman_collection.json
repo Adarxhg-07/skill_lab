@@ -1,0 +1,170 @@
+{
+  "info": {
+    "name": "EduSphere API",
+    "description": "Student Academic and Portfolio System - REST API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}"
+      }
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students"
+          }
+        },
+        {
+          "name": "Search Students by Name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students?search=aarav"
+          }
+        },
+        {
+          "name": "Filter by Department",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students?department=Computer Science"
+          }
+        },
+        {
+          "name": "Filter by Year",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students?year=2"
+          }
+        },
+        {
+          "name": "Get Single Student",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students/{{studentId}}"
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/students",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"test@edusphere.edu\",\n  \"rollNumber\": \"CS2024099\",\n  \"department\": \"Computer Science\",\n  \"year\": 1,\n  \"skills\": [\"HTML\", \"CSS\", \"JavaScript\"],\n  \"bio\": \"New student learning web development.\",\n  \"socialLinks\": {\n    \"github\": \"https://github.com/teststudent\",\n    \"linkedin\": \"\",\n    \"email\": \"test@edusphere.edu\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/students/{{studentId}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 3,\n  \"skills\": [\"JavaScript\", \"React\", \"Node.js\", \"MongoDB\", \"TypeScript\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/students/{{studentId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/tasks"
+          }
+        },
+        {
+          "name": "Filter Tasks by Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/tasks?status=in-progress"
+          }
+        },
+        {
+          "name": "Filter Tasks by Student",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/tasks?studentId={{studentId}}"
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/tasks",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Task\",\n  \"description\": \"A sample task for testing the API.\",\n  \"dueDate\": \"2024-12-01\",\n  \"priority\": \"medium\",\n  \"status\": \"todo\",\n  \"studentId\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Task Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/tasks/{{taskId}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/tasks/{{taskId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

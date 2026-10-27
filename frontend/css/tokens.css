@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
+:root {
+  /* --- Colors (from reference images) --- */
+  --dark: #292928;
+  --dark-hover: #3a3a39;
+  --accent: #c3f832;
+  --accent-hover: #b5e82d;
+  --light: #f8f8f8;
+  --white: #ffffff;
+  --border: #e8e8e8;
+  --border-hover: #d4d4d4;
+  --muted: #8a8a8a;
+  --muted-light: #b5b5b5;
+  --danger: #e54d2e;
+  --danger-light: #fff0ed;
+  --success: #30a46c;
+  --success-light: #e9f9f1;
+  --warning: #e5a100;
+  --warning-light: #fff8e6;
+
+  /* --- Typography --- */
+  --font: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* --- Spacing (4px base) --- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* --- Border Radius --- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 9999px;
+
+  /* --- Shadows (ultra-subtle) --- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07);
+
+  /* --- Motion --- */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration: 180ms;
+  --duration-slow: 300ms;
+
+  /* --- Layout --- */
+  --sidebar-w: 64px;
+  --header-h: 64px;
+  --content-max: 1120px;
+}
