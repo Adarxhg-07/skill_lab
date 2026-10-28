@@ -24,7 +24,9 @@ async function fetchStudents(params = {}) {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_BASE}/students?${query}`);
     if (!res.ok) throw new Error('Failed to fetch students');
-    return res.json();
+    const data = await res.json();
+    if (typeof setStudentsCache === 'function') setStudentsCache(data);
+    return data;
   }
   // Mock fallback
   let students = [...MOCK_STUDENTS];
@@ -41,6 +43,7 @@ async function fetchStudents(params = {}) {
   if (params.year) {
     students = students.filter(st => st.year === Number(params.year));
   }
+  if (typeof setStudentsCache === 'function') setStudentsCache(students);
   return students;
 }
 

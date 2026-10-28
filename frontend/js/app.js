@@ -88,9 +88,24 @@ function statusBadge(status) {
 }
 
 /* --- Student Name Lookup --- */
-function getStudentName(studentId) {
-  const student = MOCK_STUDENTS.find(s => s._id === studentId);
-  return student ? student.name : 'Unassigned';
+let allStudentsCache = [];
+
+function setStudentsCache(students) {
+  if (Array.isArray(students)) {
+    allStudentsCache = students;
+  }
+}
+
+function getStudentName(student) {
+  if (!student) return 'Unassigned';
+  if (typeof student === 'object' && student.name) {
+    return student.name;
+  }
+  const id = typeof student === 'object' ? student._id : student;
+  const found = allStudentsCache.find(s => s._id === id);
+  if (found) return found.name;
+  const mock = MOCK_STUDENTS.find(s => s._id === id);
+  return mock ? mock.name : 'Unassigned';
 }
 
 /* --- Debounce --- */
@@ -134,7 +149,7 @@ function getSidebarHTML() {
         <a href="index.html" class="sidebar__link" data-tooltip="Dashboard">${ICONS.grid}</a>
         <a href="students.html" class="sidebar__link" data-tooltip="Students">${ICONS.users}</a>
         <a href="tasks.html" class="sidebar__link" data-tooltip="Tasks">${ICONS.clipboard}</a>
-        <a href="portfolio.html?id=STU001" class="sidebar__link" data-tooltip="Portfolio">${ICONS.user}</a>
+        <a href="portfolio.html" class="sidebar__link" data-tooltip="Portfolio">${ICONS.user}</a>
       </div>
     </nav>`;
 }

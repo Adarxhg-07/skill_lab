@@ -109,7 +109,7 @@ function renderTaskCard(task) {
           </button>
         </div>
       </div>
-      ${task.studentId ? `
+      ${task.studentId && studentName !== 'Unassigned' ? `
         <div style="display:flex; align-items:center; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
           ${renderAvatar(studentName, 'avatar--sm')}
           <span class="text-xs text-muted">${studentName}</span>
@@ -186,8 +186,8 @@ function openTaskModal(task = null) {
     document.getElementById('taskDescInput').value = task.description || '';
     document.getElementById('taskDueInput').value = task.dueDate ? task.dueDate.split('T')[0] : '';
     document.getElementById('taskPriorityInput').value = task.priority || 'medium';
-    document.getElementById('taskStatusInput').value = task.status || 'todo';
-    document.getElementById('taskStudentInput').value = task.studentId || '';
+    const sId = typeof task.studentId === 'object' && task.studentId !== null ? task.studentId._id : (task.studentId || '');
+    document.getElementById('taskStudentInput').value = sId;
   } else {
     title.textContent = 'Add Task';
     submit.textContent = 'Add Task';

@@ -5,17 +5,29 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const studentId = params.get('id');
-
-  if (!studentId) {
-    renderError('No student selected. Add ?id=STU001 to the URL.');
-    return;
-  }
+  let studentId = params.get('id');
 
   try {
-    const student = await fetchStudent(studentId);
+    let student = null;
+    if (studentId) {
+      try {
+        student = await fetchStudent(studentId);
+      } catch {
+        student = null;
+      }
+    }
+
     if (!student) {
-      renderError('Student not found.');
+      const all = await fetchStudents();
+      if (all && all.length > 0) {
+        student = all[0];
+        studentId = student._id;
+        history.replaceState(null, '', `portfolio.html?id=${studentId}`);
+      }
+    }
+
+    if (!student) {
+      renderError('No student profiles found.');
       return;
     }
 
@@ -40,7 +52,7 @@ function renderPortfolio(student, tasks) {
 
     <!-- Hero -->
     <div class="portfolio__hero">
-      ${renderAvatar(student.name, 'avatar--xl')}
+      ${renderAvatar(student.name, 'avatar--xl portfolio__avatar')}
       <h1 class="portfolio__name">${student.name}</h1>
       <p class="portfolio__role">${student.department} &middot; Year ${student.year}</p>
       ${student.bio ? `<p class="portfolio__bio">${student.bio}</p>` : ''}

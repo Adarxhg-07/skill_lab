@@ -18,11 +18,19 @@ exports.getTasks = async (req, res, next) => {
   }
 };
 
+const mongoose = require('mongoose');
+const Student = require('../models/Student');
+
 // GET /api/students/:id/tasks - Tasks for specific student
 exports.getStudentTasks = async (req, res, next) => {
   try {
-    const tasks = await Task.find({ studentId: req.params.id })
-      .sort({ dueDate: 1 });
+    let studentId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      const student = await Student.findOne({ rollNumber: studentId });
+      if (student) studentId = student._id;
+      else return res.json([]);
+    }
+    const tasks = await Task.find({ studentId }).sort({ dueDate: 1 });
     res.json(tasks);
   } catch (err) {
     next(err);
@@ -33,7 +41,8 @@ exports.getStudentTasks = async (req, res, next) => {
 exports.createTask = async (req, res, next) => {
   try {
     const task = await Task.create(req.body);
-    res.status(201).json(task);
+    const populated = await Task.findById(task._id).populate('studentId', 'name rollNumber');
+    res.status(201).json(populated);
   } catch (err) {
     next(err);
   }
@@ -42,10 +51,13 @@ exports.createTask = async (req, res, next) => {
 // PATCH /api/tasks/:id - Update (status, priority, etc.)
 exports.updateTask = async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
     const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
-    });
+    }).populate('studentId', 'name rollNumber');
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json(task);
   } catch (err) {
@@ -56,6 +68,9 @@ exports.updateTask = async (req, res, next) => {
 // DELETE /api/tasks/:id
 exports.deleteTask = async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json({ message: 'Task deleted' });

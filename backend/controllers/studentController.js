@@ -27,10 +27,18 @@ exports.getStudents = async (req, res, next) => {
   }
 };
 
+const mongoose = require('mongoose');
+
 // GET /api/students/:id - Single student
 exports.getStudent = async (req, res, next) => {
   try {
-    const student = await Student.findById(req.params.id);
+    let student = null;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      student = await Student.findById(req.params.id);
+    }
+    if (!student) {
+      student = await Student.findOne({ rollNumber: req.params.id });
+    }
     if (!student) return res.status(404).json({ error: 'Student not found' });
     res.json(student);
   } catch (err) {
