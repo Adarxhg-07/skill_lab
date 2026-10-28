@@ -1,0 +1,12 @@
+{
+  "name": "edusphere-project",
+  "version": "1.0.0",
+  "description": "EduSphere Full-Stack Student Academic and Portfolio Operating System",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend start",
+    "seed": "npm --prefix backend run seed",
+    "install:backend": "npm --prefix backend install",
+    "frontend": "npx serve frontend"
+  }
+}
