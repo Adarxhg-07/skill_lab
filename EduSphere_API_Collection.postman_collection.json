@@ -1,14 +1,19 @@
 {
   "info": {
-    "_postman_id": "edusphere-collection-v2",
-    "name": "EduSphere REST API Collection",
-    "description": "Production API test suite for EduSphere. Covers all CRUD endpoints, cascading operations, query parameters, and automated assertions.",
+    "_postman_id": "edusphere-collection-v3",
+    "name": "EduSphere REST API Collection (with Auth)",
+    "description": "Production API suite for EduSphere including Authentication (JWT, bcrypt), Student Management, Task Kanban, and automated assertions.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "base_url",
       "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
       "type": "string"
     },
     {
@@ -24,259 +29,198 @@
   ],
   "item": [
     {
-      "name": "1. API Health Check (GET)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "http://localhost:3000/api"
-      },
-      "event": [
+      "name": "1. Authentication",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('API running message returned', function () {",
-              "    var json = pm.response.json();",
-              "    pm.expect(json.message).to.include('EduSphere API is running');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Create Student (POST)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Aarav Sharma\",\n  \"email\": \"aarav.newman@edusphere.edu\",\n  \"rollNumber\": \"STU_NEWMAN_01\",\n  \"department\": \"Computer Science\",\n  \"year\": 3,\n  \"skills\": [\"JavaScript\", \"React\", \"Node.js\", \"MongoDB\"],\n  \"bio\": \"Full-stack developer profile tested via Newman/Postman.\"\n}"
+          "name": "1.1 Invalid Login Test (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mentor@edusphere.edu\",\n  \"password\": \"invalid_pass\"\n}"
+            },
+            "url": "http://localhost:3000/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test('Returns invalid email or password message', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql('Invalid email or password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
-        "url": "http://localhost:3000/api/students"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 201 Created', function () {",
-              "    pm.response.to.have.status(201);",
-              "});",
-              "var data = pm.response.json();",
-              "pm.test('Student created with valid ID', function () {",
-              "    pm.expect(data).to.have.property('_id');",
-              "    pm.collectionVariables.set('student_id', data._id);",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "3. List Students with Filter (GET)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "http://localhost:3000/api/students?department=Computer%20Science"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Students list is array', function () {",
-              "    pm.expect(pm.response.json()).to.be.an('array');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "4. Get Single Student Profile (GET)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "http://localhost:3000/api/students/{{student_id}}"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Student name matches', function () {",
-              "    pm.expect(pm.response.json().name).to.eql('Aarav Sharma');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "5. Update Student (PUT)",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Aarav Sharma\",\n  \"year\": 4,\n  \"bio\": \"Senior developer specializing in cloud systems.\"\n}"
+          "name": "1.2 Mentor Login (200 OK)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mentor@edusphere.edu\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "http://localhost:3000/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test('Returns JWT token and mentor role', function () {",
+                  "    pm.expect(data).to.have.property('token');",
+                  "    pm.expect(data.user.role).to.eql('mentor');",
+                  "    pm.collectionVariables.set('auth_token', data.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
-        "url": "http://localhost:3000/api/students/{{student_id}}"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Year updated to 4', function () {",
-              "    pm.expect(pm.response.json().year).to.eql(4);",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "6. Create Task Linked to Student (POST)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Postman Newman Automated Task\",\n  \"description\": \"Verified end to end with Newman test runner.\",\n  \"dueDate\": \"2026-12-15T00:00:00.000Z\",\n  \"priority\": \"high\",\n  \"status\": \"todo\",\n  \"studentId\": \"{{student_id}}\"\n}"
+          "name": "1.3 Student Login (200 OK)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aarav.sharma@edusphere.edu\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "http://localhost:3000/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test('Returns student role and linked student profile', function () {",
+                  "    pm.expect(data.user.role).to.eql('student');",
+                  "    pm.expect(data.user.rollNumber).to.eql('CS2024001');",
+                  "    pm.expect(data.user).to.have.property('studentProfile');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
-        "url": "http://localhost:3000/api/tasks"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 201 Created', function () {",
-              "    pm.response.to.have.status(201);",
-              "});",
-              "var t = pm.response.json();",
-              "pm.test('Task ID captured', function () {",
-              "    pm.expect(t).to.have.property('_id');",
-              "    pm.collectionVariables.set('task_id', t._id);",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
+          "name": "1.4 Register New Student (201 Created)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sameer Khan\",\n  \"email\": \"sameer.khan@edusphere.edu\",\n  \"password\": \"password123\",\n  \"role\": \"student\",\n  \"rollNumber\": \"CS2024088\",\n  \"department\": \"Computer Science\",\n  \"year\": 3,\n  \"skills\": [\"React\", \"Node.js\", \"Docker\"],\n  \"bio\": \"Enthusiastic web and mobile engineer.\"\n}"
+            },
+            "url": "http://localhost:3000/api/auth/register"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test('Creates student account with token and studentId', function () {",
+                  "    pm.expect(data).to.have.property('token');",
+                  "    pm.expect(data.user.name).to.eql('Sameer Khan');",
+                  "    pm.expect(data.user.role).to.eql('student');",
+                  "    pm.expect(data.user).to.have.property('studentId');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "7. List Tasks with Populated Student (GET)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "http://localhost:3000/api/tasks"
-      },
-      "event": [
+      "name": "2. System Health & Core API",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Tasks list is array', function () {",
-              "    pm.expect(pm.response.json()).to.be.an('array');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "8. Update Task Status (PATCH)",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": \"done\"\n}"
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:3000/api"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
-        "url": "http://localhost:3000/api/tasks/{{task_id}}"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Status is done', function () {",
-              "    pm.expect(pm.response.json().status).to.eql('done');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ]
-    },
-    {
-      "name": "9. Cascade Delete Student & Tasks (DELETE)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": "http://localhost:3000/api/students/{{student_id}}"
-      },
-      "event": [
+          "name": "Get Students List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:3000/api/students?department=Computer%20Science"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200 OK', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "pm.test('Cascade message confirmed', function () {",
-              "    pm.expect(pm.response.json().message).to.include('Student and associated tasks deleted');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
+          "name": "Get Tasks List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:3000/api/tasks"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     }

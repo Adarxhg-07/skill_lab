@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const Student = require('./models/Student');
 const Task = require('./models/Task');
+const User = require('./models/User');
 
 const students = [
   {
@@ -92,11 +93,45 @@ async function seed() {
   // Clear existing data
   await Student.deleteMany({});
   await Task.deleteMany({});
+  await User.deleteMany({});
   console.log('Cleared existing data');
 
   // Insert students
   const inserted = await Student.insertMany(students);
   console.log(`Inserted ${inserted.length} students`);
+
+  // Insert demo user accounts
+  const demoUsers = [
+    {
+      name: 'Dr. Vikram Sarabhai (Mentor)',
+      email: 'mentor@edusphere.edu',
+      password: 'password123',
+      role: 'mentor'
+    },
+    {
+      name: 'Aarav Sharma',
+      email: 'aarav.sharma@edusphere.edu',
+      password: 'password123',
+      role: 'student',
+      studentId: inserted[0]._id,
+      rollNumber: 'CS2024001',
+      department: 'Computer Science'
+    },
+    {
+      name: 'Priya Patel',
+      email: 'priya.patel@edusphere.edu',
+      password: 'password123',
+      role: 'student',
+      studentId: inserted[1]._id,
+      rollNumber: 'CS2024002',
+      department: 'Computer Science'
+    }
+  ];
+
+  for (const u of demoUsers) {
+    await User.create(u);
+  }
+  console.log('Inserted default demo user accounts (Mentor & Students)');
 
   // Create tasks referencing real student IDs
   const tasks = [

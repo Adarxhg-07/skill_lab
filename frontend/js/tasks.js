@@ -35,13 +35,54 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Export / Import
   document.getElementById('exportBtn').addEventListener('click', exportTasks);
   document.getElementById('importFile').addEventListener('change', importTasks);
+
+  // Student-specific "My Tasks" filter button
+  const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if (currentUser && currentUser.role === 'student') {
+    const actionsBar = document.querySelector('.task-actions-bar');
+    if (actionsBar) {
+      const myBtn = document.createElement('button');
+      myBtn.id = 'myTasksFilterBtn';
+      myBtn.className = 'btn btn--outline';
+      myBtn.style.fontWeight = '600';
+      myBtn.innerHTML = `<span>My Tasks Only</span>`;
+      myBtn.onclick = () => {
+        myTasksFilterActive = !myTasksFilterActive;
+        myBtn.classList.toggle('btn--primary', myTasksFilterActive);
+        myBtn.classList.toggle('btn--outline', !myTasksFilterActive);
+        applyTasksFilterAndRender();
+      };
+      actionsBar.prepend(myBtn);
+    }
+  }
 });
 
 let editingTaskId = null;
+let rawTasksCache = [];
+let myTasksFilterActive = false;
 
 async function loadTasks() {
-  const tasks = await fetchTasks();
-  renderColumns(tasks);
+  rawTasksCache = await fetchTasks();
+  applyTasksFilterAndRender();
+}
+
+function applyTasksFilterAndRender() {
+  let filtered = [...rawTasksCache];
+  const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+
+  if (myTasksFilterActive && user && user.role === 'student') {
+    const sId = user.studentId;
+    const rNum = (user.rollNumber || '').toUpperCase();
+    filtered = filtered.filter(t => {
+      if (!t.studentId) return false;
+      if (typeof t.studentId === 'object') {
+        return (sId && t.studentId._id === sId) || (rNum && t.studentId.rollNumber && t.studentId.rollNumber.toUpperCase() === rNum);
+      }
+      return (sId && t.studentId === sId) || (rNum && t.studentId.toUpperCase() === rNum);
+    });
+  }
+
+  renderColumns(filtered);
 }
 
 function renderColumns(tasks) {
@@ -191,6 +232,12 @@ function openTaskModal(task = null) {
   } else {
     title.textContent = 'Add Task';
     submit.textContent = 'Add Task';
+    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    if (user && user.role === 'student' && user.studentId) {
+      document.getElementById('taskStudentInput').value = user.studentId;
+    } else {
+      document.getElementById('taskStudentInput').value = '';
+    }
   }
 
   modal.showModal();

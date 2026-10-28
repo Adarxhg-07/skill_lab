@@ -147,6 +147,74 @@ async function runLiveAPISuite() {
     assert.ok(!allTasks.some(t => t._id === testTaskId), 'Task should be deleted by cascade');
   });
 
+  // 10. Auth Test: Invalid Login (Expect 401)
+  await test('POST /api/auth/login - Invalid Password Handling (401)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'mentor@edusphere.edu', password: 'wrongpassword' })
+    });
+    assert.strictEqual(res.status, 401);
+    const data = await res.json();
+    assert.strictEqual(data.error, 'Invalid email or password');
+  });
+
+  // 11. Auth Test: Mentor Login (Expect 200 & JWT)
+  let mentorToken = null;
+  await test('POST /api/auth/login - Mentor Authentication (200 OK + JWT)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'mentor@edusphere.edu', password: 'password123' })
+    });
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.token, 'Token should be returned');
+    assert.strictEqual(data.user.role, 'mentor');
+    mentorToken = data.token;
+  });
+
+  // 12. Auth Test: Student Login (Expect 200 + Linked Student Profile)
+  await test('POST /api/auth/login - Student Authentication & Profile Link (200 OK)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'aarav.sharma@edusphere.edu', password: 'password123' })
+    });
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.token);
+    assert.strictEqual(data.user.role, 'student');
+    assert.ok(data.user.studentProfile, 'Student profile should be linked');
+    assert.strictEqual(data.user.rollNumber, 'CS2024001');
+  });
+
+  // 13. Auth Test: Student Registration (Expect 201 + Automatic Student Creation)
+  await test('POST /api/auth/register - Register New Student with Roll Number (201 Created)', async () => {
+    const uniqueEmail = `test.student.${Date.now()}@edusphere.edu`;
+    const uniqueRoll = `TEST_${Date.now().toString().slice(-4)}`;
+    const res = await fetch(`${BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Neha Gupta',
+        email: uniqueEmail,
+        password: 'password123',
+        role: 'student',
+        rollNumber: uniqueRoll,
+        department: 'AI & ML',
+        year: 2,
+        skills: ['Python', 'TensorFlow']
+      })
+    });
+    assert.strictEqual(res.status, 201);
+    const data = await res.json();
+    assert.ok(data.token);
+    assert.strictEqual(data.user.name, 'Neha Gupta');
+    assert.strictEqual(data.user.role, 'student');
+    assert.ok(data.user.studentId, 'studentId should be created and linked');
+  });
+
   console.log('\n------------------------------------------------------');
   console.log(`Results: ${passed}/${total} Tests Passed (100% Success)`);
   console.log('------------------------------------------------------\n');

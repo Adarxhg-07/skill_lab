@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/students');
 const taskRoutes = require('./routes/tasks');
 const errorHandler = require('./middleware/errorHandler');
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/tasks', taskRoutes);
 

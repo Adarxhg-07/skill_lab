@@ -17,6 +17,128 @@ async function checkBackend() {
   return isBackendAvailable;
 }
 
+/* --- Authentication --- */
+
+function getAuthToken() {
+  return localStorage.getItem('edusphere_token');
+}
+
+function getCurrentUser() {
+  try {
+    const raw = localStorage.getItem('edusphere_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setAuthSession(token, user) {
+  if (token) localStorage.setItem('edusphere_token', token);
+  if (user) localStorage.setItem('edusphere_user', JSON.stringify(user));
+}
+
+function clearAuthSession() {
+  localStorage.removeItem('edusphere_token');
+  localStorage.removeItem('edusphere_user');
+}
+
+async function loginUser(email, password) {
+  if (await checkBackend()) {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Invalid email or password');
+    }
+    setAuthSession(data.token, data.user);
+    return data;
+  }
+
+  // Mock Fallback Auth
+  const em = (email || '').toLowerCase().trim();
+  if (em === 'mentor@edusphere.edu' && password === 'password123') {
+    const user = {
+      _id: 'usr_mentor_01',
+      name: 'Dr. Vikram Sarabhai',
+      email: 'mentor@edusphere.edu',
+      role: 'mentor'
+    };
+    setAuthSession('mock_jwt_token_mentor', user);
+    return { token: 'mock_jwt_token_mentor', user };
+  } else if ((em === 'aarav.sharma@edusphere.edu' || em === 'aarav@edusphere.edu') && password === 'password123') {
+    const student = (typeof MOCK_STUDENTS !== 'undefined' && MOCK_STUDENTS[0]) || { _id: 'STU001', name: 'Aarav Sharma', rollNumber: 'CS2024001', department: 'Computer Science' };
+    const user = {
+      _id: 'usr_student_01',
+      name: student.name,
+      email: student.email,
+      role: 'student',
+      studentId: student._id,
+      rollNumber: student.rollNumber,
+      department: student.department,
+      studentProfile: student
+    };
+    setAuthSession('mock_jwt_token_student', user);
+    return { token: 'mock_jwt_token_student', user };
+  } else {
+    throw new Error('Invalid email or password');
+  }
+}
+
+async function registerUser(userData) {
+  if (await checkBackend()) {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to register account');
+    }
+    setAuthSession(data.token, data.user);
+    return data;
+  }
+
+  // Mock Registration Fallback
+  const role = userData.role || 'student';
+  let student = null;
+  if (role === 'student' && typeof MOCK_STUDENTS !== 'undefined') {
+    student = {
+      _id: 'STU' + String(MOCK_STUDENTS.length + 1).padStart(3, '0'),
+      name: userData.name,
+      email: userData.email,
+      rollNumber: userData.rollNumber || 'STU' + (MOCK_STUDENTS.length + 1),
+      department: userData.department || 'Computer Science',
+      year: Number(userData.year) || 1,
+      skills: userData.skills || [],
+      bio: userData.bio || '',
+      createdAt: new Date().toISOString()
+    };
+    MOCK_STUDENTS.push(student);
+  }
+
+  const user = {
+    _id: 'usr_' + Date.now(),
+    name: userData.name,
+    email: userData.email,
+    role: role,
+    studentId: student ? student._id : null,
+    rollNumber: userData.rollNumber || '',
+    department: userData.department || '',
+    studentProfile: student
+  };
+  setAuthSession('mock_jwt_token_' + Date.now(), user);
+  return { token: 'mock_jwt_token', user };
+}
+
+function logoutUser() {
+  clearAuthSession();
+  window.location.reload();
+}
+
 /* --- Students --- */
 
 async function fetchStudents(params = {}) {

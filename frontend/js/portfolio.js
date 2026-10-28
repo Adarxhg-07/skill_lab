@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   let studentId = params.get('id');
 
+  // If no ID passed in query, prioritize logged-in student
+  const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if (!studentId && currentUser && currentUser.role === 'student') {
+    studentId = currentUser.studentId || currentUser.rollNumber;
+  }
+
   try {
     let student = null;
     if (studentId) {

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduSphere Authentication - Sign in or register as a student or mentor.">
+  <title>Sign In &bull; EduSphere</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s-6);
+      background: var(--bg);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--s-8);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    }
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      margin-bottom: var(--s-6);
+      text-decoration: none;
+    }
+    .auth-brand__logo {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r-md);
+      background: var(--dark);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.5px;
+    }
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--s-6);
+      gap: var(--s-2);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: var(--s-3) 0;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--t-fast);
+    }
+    .auth-tab.active {
+      color: var(--dark);
+      border-bottom-color: var(--accent);
+    }
+    .auth-role-toggle {
+      display: flex;
+      background: var(--bg);
+      border-radius: var(--r-md);
+      padding: 3px;
+      margin-bottom: var(--s-4);
+      border: 1px solid var(--border);
+    }
+    .auth-role-btn {
+      flex: 1;
+      padding: var(--s-2);
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      background: none;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all var(--t-fast);
+      text-align: center;
+    }
+    .auth-role-btn.active {
+      background: var(--surface);
+      color: var(--dark);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .auth-error-banner {
+      display: none;
+      padding: var(--s-3) var(--s-4);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--r-md);
+      color: #991b1b;
+      font-size: 13px;
+      margin-bottom: var(--s-4);
+      line-height: 1.4;
+    }
+    .auth-success-banner {
+      display: none;
+      padding: var(--s-3) var(--s-4);
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: var(--r-md);
+      color: #166534;
+      font-size: 13px;
+      margin-bottom: var(--s-4);
+      line-height: 1.4;
+    }
+    .demo-creds {
+      margin-top: var(--s-6);
+      padding-top: var(--s-4);
+      border-top: 1px solid var(--border);
+    }
+    .demo-creds__title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: var(--s-2);
+    }
+    .demo-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-2);
+    }
+    .demo-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--t-fast);
+    }
+    .demo-btn:hover {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <a href="index.html" class="auth-brand">
+        <div class="auth-brand__logo">ES</div>
+        <div>
+          <div style="font-weight:700; font-size:16px; color:var(--dark);">EduSphere</div>
+          <div style="font-size:11px; color:var(--text-muted); letter-spacing:0.3px;">Academic & Portfolio System</div>
+        </div>
+      </a>
+
+      <!-- Error / Success Banners -->
+      <div id="authError" class="auth-error-banner"></div>
+      <div id="authSuccess" class="auth-success-banner"></div>
+
+      <!-- Mode Tabs -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">Sign In</button>
+        <button type="button" class="auth-tab" id="tabRegister" onclick="switchAuthMode('register')">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="e.g. mentor@edusphere.edu" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label class="form-label" for="loginPassword">Password</label>
+            <span id="invalidHint" class="text-xs text-muted" style="color:var(--text-muted);">min 6 chars</span>
+          </div>
+          <input type="password" id="loginPassword" class="form-input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required autocomplete="current-password">
+        </div>
+        <button type="submit" id="loginSubmitBtn" class="btn btn--primary" style="width:100%; margin-top:var(--s-3);">
+          Sign In to EduSphere
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" onsubmit="handleRegisterSubmit(event)" style="display:none;">
+        <label class="form-label">I am registering as:</label>
+        <div class="auth-role-toggle">
+          <button type="button" class="auth-role-btn active" id="roleStudentBtn" onclick="selectRole('student')">Student</button>
+          <button type="button" class="auth-role-btn" id="roleMentorBtn" onclick="selectRole('mentor')">Mentor / Faculty</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regName">Full Name</label>
+          <input type="text" id="regName" class="form-input" placeholder="e.g. Aarav Sharma" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regEmail">College Email</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="e.g. aarav.sharma@edusphere.edu" required autocomplete="username">
+        </div>
+
+        <!-- Student-Specific Fields -->
+        <div id="studentFields">
+          <div class="form-row" style="display:flex; gap:var(--s-3);">
+            <div class="form-group" style="flex:1;">
+              <label class="form-label" for="regRoll">Roll Number</label>
+              <input type="text" id="regRoll" class="form-input" placeholder="CS2024001" style="text-transform:uppercase;">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label class="form-label" for="regYear">Year</label>
+              <select id="regYear" class="form-select">
+                <option value="1">1st Year</option>
+                <option value="2" selected>2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regDept">Department</label>
+            <select id="regDept" class="form-select">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Science">Information Science</option>
+              <option value="AI & ML">AI & ML</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Create Password</label>
+          <input type="password" id="regPassword" class="form-input" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+        </div>
+
+        <button type="submit" id="regSubmitBtn" class="btn btn--primary" style="width:100%; margin-top:var(--s-2);">
+          Complete Registration
+        </button>
+      </form>
+
+      <!-- 1-Click Demo Logins for Presentations/Viva -->
+      <div class="demo-creds">
+        <div class="demo-creds__title">Quick Demo Login (1-Click Fill)</div>
+        <div class="demo-btn-group">
+          <button type="button" class="demo-btn" onclick="fillDemo('mentor@edusphere.edu', 'password123')">
+            <span><strong>Mentor:</strong> mentor@edusphere.edu</span>
+            <span class="badge badge--accent" style="font-size:10px;">FACULTY</span>
+          </button>
+          <button type="button" class="demo-btn" onclick="fillDemo('aarav.sharma@edusphere.edu', 'password123')">
+            <span><strong>Student:</strong> aarav.sharma@edusphere.edu</span>
+            <span class="badge badge--muted" style="font-size:10px;">STUDENT</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:var(--s-5);">
+        <a href="index.html" class="text-xs text-muted" style="text-decoration:none;">&larr; Back to Public Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let currentMode = 'login';
+    let selectedRole = 'student';
+
+    function switchAuthMode(mode) {
+      currentMode = mode;
+      hideBanners();
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      if (mode === 'login') {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+      } else {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+      }
+    }
+
+    function selectRole(role) {
+      selectedRole = role;
+      const studentBtn = document.getElementById('roleStudentBtn');
+      const mentorBtn = document.getElementById('roleMentorBtn');
+      const studentFields = document.getElementById('studentFields');
+      const regRoll = document.getElementById('regRoll');
+
+      if (role === 'student') {
+        studentBtn.classList.add('active');
+        mentorBtn.classList.remove('active');
+        studentFields.style.display = 'block';
+        regRoll.required = true;
+      } else {
+        mentorBtn.classList.add('active');
+        studentBtn.classList.remove('active');
+        studentFields.style.display = 'none';
+        regRoll.required = false;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('authSuccess').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('authSuccess');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('authError').style.display = 'none';
+    }
+
+    function hideBanners() {
+      document.getElementById('authError').style.display = 'none';
+      document.getElementById('authSuccess').style.display = 'none';
+    }
+
+    function fillDemo(email, pass) {
+      switchAuthMode('login');
+      document.getElementById('loginEmail').value = email;
+      document.getElementById('loginPassword').value = pass;
+      hideBanners();
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      hideBanners();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginSubmitBtn');
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying credentials...';
+
+      try {
+        const res = await loginUser(email, password);
+        showSuccess(`Welcome back, ${res.user.name}! Redirecting...`);
+        setTimeout(() => {
+          if (res.user.role === 'student' && (res.user.studentId || res.user.rollNumber)) {
+            window.location.href = `portfolio.html?id=${res.user.studentId || res.user.rollNumber}`;
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 800);
+      } catch (err) {
+        showError(err.message || 'Invalid email or password. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Sign In to EduSphere';
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      hideBanners();
+
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const btn = document.getElementById('regSubmitBtn');
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters long.');
+        return;
+      }
+
+      const payload = {
+        name,
+        email,
+        password,
+        role: selectedRole
+      };
+
+      if (selectedRole === 'student') {
+        const rollNumber = document.getElementById('regRoll').value.trim();
+        if (!rollNumber) {
+          showError('Roll number is required for students.');
+          return;
+        }
+        payload.rollNumber = rollNumber;
+        payload.department = document.getElementById('regDept').value;
+        payload.year = Number(document.getElementById('regYear').value);
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await registerUser(payload);
+        showSuccess(`Account registered successfully as ${res.user.role}! Redirecting...`);
+        setTimeout(() => {
+          if (res.user.role === 'student' && (res.user.studentId || res.user.rollNumber)) {
+            window.location.href = `portfolio.html?id=${res.user.studentId || res.user.rollNumber}`;
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 900);
+      } catch (err) {
+        showError(err.message || 'Registration failed. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Complete Registration';
+      }
+    }
+  </script>
+</body>
+</html>

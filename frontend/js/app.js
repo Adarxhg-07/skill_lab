@@ -137,19 +137,91 @@ const ICONS = {
   mail: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
   department: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
   year: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 10 3 12 0v-5"/></svg>',
-  empty: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>'
+  empty: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>',
+  login: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>',
+  logout: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>'
 };
 
-/* --- Sidebar HTML Template --- */
+/* --- Sidebar HTML Template with Auth Awareness --- */
 function getSidebarHTML() {
+  const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  const portfolioHref = (user && user.role === 'student' && (user.studentId || user.rollNumber))
+    ? `portfolio.html?id=${user.studentId || user.rollNumber}`
+    : 'portfolio.html';
+
   return `
     <nav class="sidebar" id="sidebar">
-      <div class="sidebar__logo">ES</div>
+      <a href="index.html" class="sidebar__logo" style="text-decoration:none;">ES</a>
       <div class="sidebar__nav">
         <a href="index.html" class="sidebar__link" data-tooltip="Dashboard">${ICONS.grid}</a>
         <a href="students.html" class="sidebar__link" data-tooltip="Students">${ICONS.users}</a>
         <a href="tasks.html" class="sidebar__link" data-tooltip="Tasks">${ICONS.clipboard}</a>
-        <a href="portfolio.html" class="sidebar__link" data-tooltip="Portfolio">${ICONS.user}</a>
+        <a href="${portfolioHref}" class="sidebar__link" data-tooltip="${user && user.role === 'student' ? 'My Portfolio' : 'Portfolio'}">${ICONS.user}</a>
+      </div>
+      <div class="sidebar__footer" style="margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:10px; padding-bottom:14px;">
+        ${user ? `
+          <div data-tooltip="${user.name} (${user.role})" style="display:flex; justify-content:center;">
+            ${renderAvatar(user.name, 'avatar--sm')}
+          </div>
+          <button onclick="logoutUser()" class="sidebar__link" data-tooltip="Sign Out (${user.name})" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:0;">
+            ${ICONS.logout}
+          </button>
+        ` : `
+          <a href="login.html" class="sidebar__link" data-tooltip="Sign In / Register" style="color:var(--text-muted);">
+            ${ICONS.login}
+          </a>
+        `}
       </div>
     </nav>`;
 }
+
+/* --- Render Header User Profile Pill --- */
+function renderHeaderUser() {
+  const headerRight = document.querySelector('.page-header__right');
+  if (!headerRight) return;
+  const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+
+  const existing = document.getElementById('headerUserBadge');
+  if (existing) existing.remove();
+
+  const badge = document.createElement('div');
+  badge.id = 'headerUserBadge';
+  badge.style.display = 'flex';
+  badge.style.alignItems = 'center';
+  badge.style.gap = '8px';
+  badge.style.marginLeft = '8px';
+
+  if (user) {
+    const isStudent = user.role === 'student';
+    badge.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; padding:4px 10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-full); font-size:12px;">
+        ${renderAvatar(user.name, 'avatar--xs')}
+        <span style="font-weight:600; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${user.name}</span>
+        <span class="badge ${isStudent ? 'badge--muted' : 'badge--accent'}" style="font-size:10px; text-transform:uppercase; padding:2px 6px;">
+          ${user.role}
+        </span>
+        ${isStudent && (user.studentId || user.rollNumber) ? `
+          <a href="portfolio.html?id=${user.studentId || user.rollNumber}" class="text-xs" style="color:var(--accent); text-decoration:none; font-weight:600; border-left:1px solid var(--border); padding-left:8px;" title="View My Portfolio">
+            My Portfolio
+          </a>
+        ` : ''}
+        <button onclick="logoutUser()" title="Sign Out" style="background:none; border:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; padding:2px; margin-left:4px;">
+          ${ICONS.close}
+        </button>
+      </div>
+    `;
+  } else {
+    badge.innerHTML = `
+      <a href="login.html" class="btn btn--sm btn--primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        ${ICONS.login}
+        <span>Sign In</span>
+      </a>
+    `;
+  }
+  headerRight.appendChild(badge);
+}
+
+// Automatically render header badge on load
+document.addEventListener('DOMContentLoaded', () => {
+  renderHeaderUser();
+});

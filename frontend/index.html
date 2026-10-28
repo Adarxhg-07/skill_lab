@@ -20,6 +20,7 @@
       <header class="page-header">
         <div class="page-header__left">
           <h1 class="page-title">Dashboard</h1>
+          <div id="userGreeting" class="text-xs text-muted" style="margin-top:2px;"></div>
         </div>
         <div class="page-header__right">
           <div class="search-box">
@@ -73,6 +74,16 @@
       // Inject sidebar
       document.getElementById('sidebar-root').innerHTML = getSidebarHTML();
       initSidebarActiveState();
+
+      // Personalize greeting
+      const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+      const gEl = document.getElementById('userGreeting');
+      if (user && gEl) {
+        const isStudent = user.role === 'student';
+        gEl.innerHTML = `Welcome back, <strong>${user.name}</strong> &bull; <span class="badge ${isStudent ? 'badge--muted' : 'badge--accent'}" style="font-size:10px;">${isStudent ? 'STUDENT' : 'MENTOR'}</span>${isStudent && (user.rollNumber || user.studentId) ? ` &bull; Roll: ${user.rollNumber || ''}` : ''}`;
+      } else if (gEl) {
+        gEl.innerHTML = `System Overview &bull; <a href="login.html" style="color:var(--accent); text-decoration:none; font-weight:600;">Sign In</a> for full access`;
+      }
 
       // Load data
       const students = await fetchStudents();
